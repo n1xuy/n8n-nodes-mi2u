@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-mi2u",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MI2U custom node that handle login,create and search invoice to ICS",
   "keywords": [
     "n8n-community-node-package",

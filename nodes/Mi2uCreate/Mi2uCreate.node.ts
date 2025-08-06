@@ -7,35 +7,28 @@ import type {
 	INodePropertyOptions,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
-import * as fs from 'fs';
-import * as path from 'path';
 
-// Helper function to load options from LHDN codes JSON files
-const loadOptionsFromFile = (filename: string, nameKey: string, valueKey: string): INodePropertyOptions[] => {
-	try {
-		const filePath = path.join(__dirname, '..', '..', 'LHDN codes', filename);
-		const fileContent = fs.readFileSync(filePath, 'utf8');
-		const jsonData = JSON.parse(fileContent);
-		return jsonData.map((item: any) => ({
-			name: item[nameKey],
-			value: item[valueKey],
-		}));
-	} catch (error) {
-		console.error(`Error loading options from ${filename}:`, error);
-		return []; // Return empty array as fallback
-	}
-};
+// Import JSON data directly
+import countryCodes from '../../LHDN codes/CountryCodes.json';
+import stateCodes from '../../LHDN codes/StateCodes.json';
+import classificationCodes from '../../LHDN codes/ClassificationCodes.json';
+import paymentMethods from '../../LHDN codes/PaymentMethods.json';
+import eInvoiceTypes from '../../LHDN codes/EInvoiceTypes.json';
+import currencyCodes from '../../LHDN codes/CurrencyCodes.json';
+import unitTypes from '../../LHDN codes/UnitTypes.json';
+import taxTypes from '../../LHDN codes/TaxTypes.json';
+import msicCodes from '../../LHDN codes/MSICSubCategoryCodes.json';
 
-// Load all options from JSON files
-const countryOptions = loadOptionsFromFile('CountryCodes.json', 'Country', 'Code');
-const stateOptions = loadOptionsFromFile('StateCodes.json', 'State', 'Code');
-const classificationOptions = loadOptionsFromFile('ClassificationCodes.json', 'Description', 'Code');
-const paymentMethodOptions = loadOptionsFromFile('PaymentMethods.json', 'Payment Method', 'Code');
-const invoiceTypeOptions = loadOptionsFromFile('EInvoiceTypes.json', 'Description', 'Code');
-const currencyOptions = loadOptionsFromFile('CurrencyCodes.json', 'Currency', 'Code');
-const unitTypeOptions = loadOptionsFromFile('UnitTypes.json', 'Name', 'Code');
-const taxTypeOptions = loadOptionsFromFile('TaxTypes.json', 'Description', 'Code');
-const MSICOptions = loadOptionsFromFile('MSICSubCategoryCodes.json', 'Description', 'Code');
+// Map imported JSON data to INodePropertyOptions format
+const countryOptions: INodePropertyOptions[] = countryCodes.map(item => ({ name: item.Country, value: item.Code }));
+const stateOptions: INodePropertyOptions[] = stateCodes.map(item => ({ name: item.State, value: item.Code }));
+const classificationOptions: INodePropertyOptions[] = classificationCodes.map(item => ({ name: item.Description, value: item.Code }));
+const paymentMethodOptions: INodePropertyOptions[] = paymentMethods.map(item => ({ name: item['Payment Method'], value: item.Code }));
+const invoiceTypeOptions: INodePropertyOptions[] = eInvoiceTypes.map(item => ({ name: item.Description, value: item.Code }));
+const currencyOptions: INodePropertyOptions[] = currencyCodes.map(item => ({ name: item.Currency, value: item.Code }));
+const unitTypeOptions: INodePropertyOptions[] = unitTypes.map(item => ({ name: item.Name, value: item.Code }));
+const taxTypeOptions: INodePropertyOptions[] = taxTypes.map(item => ({ name: item.Description, value: item.Code }));
+const MSICOptions: INodePropertyOptions[] = msicCodes.map(item => ({ name: item.Description, value: item.Code }));
 
 export class Mi2uCreate implements INodeType {
 	description: INodeTypeDescription = {
