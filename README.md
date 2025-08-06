@@ -1,6 +1,6 @@
 # n8n-nodes-mi2u
 
-This is an n8n community node. It provides a set of nodes to interact with the Mi2u service, allowing you to manage inboxes and messages programmatically.
+This is an n8n community node. It provides a set of nodes to interact with the Mi2u service, allowing you to automate your invoice and send to ICS for LHDN process.
 
 [n8n](https://n8n.io/) is a fair-code licensed workflow automation tool.
 
