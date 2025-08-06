@@ -1,20 +1,21 @@
 import {
 	ICredentialType,
 	INodeProperties,
+	ICredentialTestRequest,
 } from 'n8n-workflow';
 
 export class Mi2uApi implements ICredentialType {
 	name = 'mi2uApi';
 	displayName = 'Mi2u API';
-	documentationUrl = 'https://github.com/AxiomCode93/n8n-nodes-mi2u';
+	documentationUrl = 'https://github.com/n1xuy/n8n-nodes-mi2u';
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API URL',
 			name: 'apiUrl',
 			type: 'string',
 			default: '',
-			placeholder: 'https://api.example.com',
-			description: 'The base URL of the Mi2u API',
+			placeholder: 'https://ics-uat.myinvoice2u.com/MYWs/ws/api',
+			description: 'The base URL for the ICS API.',
 		},
 		{
 			displayName: 'Username',
@@ -32,4 +33,18 @@ export class Mi2uApi implements ICredentialType {
 			},
 		},
 	];
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.apiUrl}}',
+			// You may need to change the url to a specific login endpoint, e.g., '/login'
+			url: '/getToken',
+			method: 'POST',
+			body: {
+				"username": "{{$credentials.username}}",
+				"password": "{{$credentials.password}}"
+			}
+		},
+	};
+
 }

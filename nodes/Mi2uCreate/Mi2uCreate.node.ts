@@ -4,9 +4,38 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IHttpRequestOptions,
+	INodePropertyOptions,
 } from 'n8n-workflow';
-import { NodeConnectionType } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Helper function to load options from LHDN codes JSON files
+const loadOptionsFromFile = (filename: string, nameKey: string, valueKey: string): INodePropertyOptions[] => {
+	try {
+		const filePath = path.join(__dirname, '..', '..', 'LHDN codes', filename);
+		const fileContent = fs.readFileSync(filePath, 'utf8');
+		const jsonData = JSON.parse(fileContent);
+		return jsonData.map((item: any) => ({
+			name: item[nameKey],
+			value: item[valueKey],
+		}));
+	} catch (error) {
+		console.error(`Error loading options from ${filename}:`, error);
+		return []; // Return empty array as fallback
+	}
+};
+
+// Load all options from JSON files
+const countryOptions = loadOptionsFromFile('CountryCodes.json', 'Country', 'Code');
+const stateOptions = loadOptionsFromFile('StateCodes.json', 'State', 'Code');
+const classificationOptions = loadOptionsFromFile('ClassificationCodes.json', 'Description', 'Code');
+const paymentMethodOptions = loadOptionsFromFile('PaymentMethods.json', 'Payment Method', 'Code');
+const invoiceTypeOptions = loadOptionsFromFile('EInvoiceTypes.json', 'Description', 'Code');
+const currencyOptions = loadOptionsFromFile('CurrencyCodes.json', 'Currency', 'Code');
+const unitTypeOptions = loadOptionsFromFile('UnitTypes.json', 'Name', 'Code');
+const taxTypeOptions = loadOptionsFromFile('TaxTypes.json', 'Description', 'Code');
+const MSICOptions = loadOptionsFromFile('MSICSubCategoryCodes.json', 'Description', 'Code');
 
 export class Mi2uCreate implements INodeType {
 	description: INodeTypeDescription = {
@@ -58,16 +87,7 @@ export class Mi2uCreate implements INodeType {
 				type: 'options',
 				default: '01',
 				required: true,
-				options: [
-					{ name: 'Invoice', value: '01' },
-					{ name: 'Credit Note', value: '02' },
-					{ name: 'Debit Note', value: '03' },
-					{ name: 'Refund Note', value: '04' },
-					{ name: 'Self-Billed Invoice', value: '11' },
-					{ name: 'Self-Billed Credit Note', value: '12' },
-					{ name: 'Self-Billed Debit Note', value: '13' },
-					{ name: 'Self-Billed Refund Note', value: '14' },
-				],
+				options: invoiceTypeOptions,
 			},
 			{
 				displayName: 'Original Invoice Code Number',
@@ -87,12 +107,7 @@ export class Mi2uCreate implements INodeType {
 				type: 'options',
 				default: 'MYR',
 				required: true,
-				options: [
-					{ name: 'Malaysian Ringgit', value: 'MYR' },
-					{ name: 'United States Dollar', value: 'USD' },
-					{ name: 'Euro', value: 'EUR' },
-					{ name: 'Singapore Dollar', value: 'SGD' },
-				],
+				options: currencyOptions,
 			},
 			{
 				displayName: 'Exchange Rate',
@@ -236,8 +251,10 @@ export class Mi2uCreate implements INodeType {
 			{
 				displayName: 'Supplier Industry Code',
 				name: 'supplierIndustryCode',
-				type: 'string',
+				type: 'options',
 				default: '',
+				options:MSICOptions,
+				required: true,
 			},
 			{
 				displayName: 'Supplier Business Activity Description',
@@ -262,59 +279,17 @@ export class Mi2uCreate implements INodeType {
 			{
 				displayName: 'Supplier Country',
 				name: 'supplierCountry',
-				type: 'options',
+				type: 'string',
 				default: 'MYS',
 				required: true,
-				options: [
-					{ name: 'Australia', value: 'AUS' },
-					{ name: 'Brunei Darussalam', value: 'BRN' },
-					{ name: 'Cambodia', value: 'KHM' },
-					{ name: 'Canada', value: 'CAN' },
-					{ name: 'China', value: 'CHN' },
-					{ name: 'France', value: 'FRA' },
-					{ name: 'Germany', value: 'DEU' },
-					{ name: 'Hong Kong', value: 'HKG' },
-					{ name: 'India', value: 'IND' },
-					{ name: 'Indonesia', value: 'IDN' },
-					{ name: 'Japan', value: 'JPN' },
-					{ name: 'Korea', value: 'KOR' },
-					{ name: 'Laos', value: 'LAO' },
-					{ name: 'Malaysia', value: 'MYS' },
-					{ name: 'Myanmar', value: 'MMR' },
-					{ name: 'New Zealand', value: 'NZL' },
-					{ name: 'Philippines', value: 'PHL' },
-					{ name: 'Singapore', value: 'SGP' },
-					{ name: 'Taiwan', value: 'TWN' },
-					{ name: 'Thailand', value: 'THA' },
-					{ name: 'United Kingdom', value: 'GBR' },
-					{ name: 'United States', value: 'USA' },
-					{ name: 'Vietnam', value: 'VNM' },
-				],
+				options: countryOptions,
 			},
 			{
 				displayName: 'Supplier State',
 				name: 'supplierState',
 				type: 'options',
 				default: '10',
-				options: [
-					{ name: 'Johor', value: '01' },
-					{ name: 'Kedah', value: '02' },
-					{ name: 'Kelantan', value: '03' },
-					{ name: 'Melaka', value: '04' },
-					{ name: 'Negeri Sembilan', value: '05' },
-					{ name: 'Pahang', value: '06' },
-					{ name: 'Pulau Pinang', value: '07' },
-					{ name: 'Perak', value: '08' },
-					{ name: 'Perlis', value: '09' },
-					{ name: 'Selangor', value: '10' },
-					{ name: 'Terengganu', value: '11' },
-					{ name: 'Sabah', value: '12' },
-					{ name: 'Sarawak', value: '13' },
-					{ name: 'Wilayah Persekutuan Kuala Lumpur', value: '14' },
-					{ name: 'Wilayah Persekutuan Labuan', value: '15' },
-					{ name: 'Wilayah Persekutuan Putrajaya', value: '16' },
-					{ name: 'Not Applicable', value: '17' },
-				],
+				options: stateOptions,
 			},
 			{
 				displayName: 'Supplier City Name',
@@ -412,58 +387,16 @@ export class Mi2uCreate implements INodeType {
 			{
 				displayName: 'Buyer Country',
 				name: 'buyerCountry',
-				type: 'options',
+				type: 'string',
 				default: 'MYS',
-				options: [
-					{ name: 'Australia', value: 'AUS' },
-					{ name: 'Brunei Darussalam', value: 'BRN' },
-					{ name: 'Cambodia', value: 'KHM' },
-					{ name: 'Canada', value: 'CAN' },
-					{ name: 'China', value: 'CHN' },
-					{ name: 'France', value: 'FRA' },
-					{ name: 'Germany', value: 'DEU' },
-					{ name: 'Hong Kong', value: 'HKG' },
-					{ name: 'India', value: 'IND' },
-					{ name: 'Indonesia', value: 'IDN' },
-					{ name: 'Japan', value: 'JPN' },
-					{ name: 'Korea', value: 'KOR' },
-					{ name: 'Laos', value: 'LAO' },
-					{ name: 'Malaysia', value: 'MYS' },
-					{ name: 'Myanmar', value: 'MMR' },
-					{ name: 'New Zealand', value: 'NZL' },
-					{ name: 'Philippines', value: 'PHL' },
-					{ name: 'Singapore', value: 'SGP' },
-					{ name: 'Taiwan', value: 'TWN' },
-					{ name: 'Thailand', value: 'THA' },
-					{ name: 'United Kingdom', value: 'GBR' },
-					{ name: 'United States', value: 'USA' },
-					{ name: 'Vietnam', value: 'VNM' },
-				],
+				options: countryOptions,
 			},
 			{
 				displayName: 'Buyer State',
 				name: 'buyerState',
 				type: 'options',
 				default: '17',
-				options: [
-					{ name: 'Johor', value: '01' },
-					{ name: 'Kedah', value: '02' },
-					{ name: 'Kelantan', value: '03' },
-					{ name: 'Melaka', value: '04' },
-					{ name: 'Negeri Sembilan', value: '05' },
-					{ name: 'Pahang', value: '06' },
-					{ name: 'Pulau Pinang', value: '07' },
-					{ name: 'Perak', value: '08' },
-					{ name: 'Perlis', value: '09' },
-					{ name: 'Selangor', value: '10' },
-					{ name: 'Terengganu', value: '11' },
-					{ name: 'Sabah', value: '12' },
-					{ name: 'Sarawak', value: '13' },
-					{ name: 'Wilayah Persekutuan Kuala Lumpur', value: '14' },
-					{ name: 'Wilayah Persekutuan Labuan', value: '15' },
-					{ name: 'Wilayah Persekutuan Putrajaya', value: '16' },
-					{ name: 'Not Applicable', value: '17' },
-				],
+				options: stateOptions,
 			},
 			{
 				displayName: 'Buyer City Name',
@@ -517,39 +450,14 @@ export class Mi2uCreate implements INodeType {
 								type: 'options',
 								default: '022',
 								required: true,
-								options: [
-									{ name: 'Breastfeeding Equipment', value: '001' },
-									{ name: 'Child Care Centres and Kindergartens Fees', value: '002' },
-									{ name: 'Computer, Smartphone or Tablet', value: '003' },
-									{ name: 'Consolidated E-Invoice', value: '004' },
-									{ name: 'Construction Materials', value: '005' },
-									{ name: 'Disbursement', value: '006' },
-									{ name: 'Donation', value: '007' },
-									{ name: 'E-Commerce - E-Invoice to Buyer', value: '008' },
-									{ name: 'E-Commerce - Self-Billed E-Invoice', value: '009' },
-									{ name: 'Education Fees', value: '010' },
-									{ name: 'Goods on Consignment (Consignor)', value: '011' },
-									{ name: 'Goods on Consignment (Consignee)', value: '012' },
-									{ name: 'Gym Membership', value: '013' },
-									{ name: 'Insurance - Education and Medical Benefits', value: '014' },
-									{ name: 'Insurance - Takaful or Life Insurance', value: '015' },
-									{ name: 'Interest and Financing Expenses', value: '016' },
-									{ name: 'Internet Subscription', value: '017' },
-									{ name: 'Land and Building', value: '018' },
-									{ name: 'Medical Examination for Learning Disabilities', value: '019' },
-									{ name: 'Medical Examination or Vaccination Expenses', value: '020' },
-									{ name: 'Medical Expenses for Serious Diseases', value: '021' },
-									{ name: 'Others', value: '022' },
-									{ name: 'Petroleum Operations', value: '023' },
-									{ name: 'Private Retirement Scheme', value: '024' },
-									{ name: 'Purchase of Goods for Business Use', value: '025' },
-								],
+								options: classificationOptions,
 							},
 							{
 								displayName: 'Country of Origin',
 								name: 'countryofOrigin',
 								type: 'string',
 								default: 'MYS',
+								options: countryOptions,
 							},
 							{
 								displayName: 'Discount Amount',
@@ -607,28 +515,7 @@ export class Mi2uCreate implements INodeType {
 								type: 'options',
 								default: 'EA',
 								required: true,
-								options: [
-									{ name: 'Bottle', value: 'BO' },
-									{ name: 'Box', value: 'BX' },
-									{ name: 'Centimetre', value: 'CMT' },
-									{ name: 'Cubic Metre', value: 'MTQ' },
-									{ name: 'Day', value: 'DAY' },
-									{ name: 'Dozen', value: 'DZN' },
-									{ name: 'Each', value: 'EA' },
-									{ name: 'Gram', value: 'GRM' },
-									{ name: 'Hour', value: 'HUR' },
-									{ name: 'Kilogram', value: 'KGM' },
-									{ name: 'Litre', value: 'LTR' },
-									{ name: 'Metre', value: 'MTR' },
-									{ name: 'Millilitre', value: 'MLT' },
-									{ name: 'Month', value: 'MON' },
-									{ name: 'Package', value: 'PK' },
-									{ name: 'Pair', value: 'PR' },
-									{ name: 'Set', value: 'SET' },
-									{ name: 'Square Metre', value: 'MTK' },
-									{ name: 'Unit', value: 'XUN' },
-									{ name: 'Year', value: 'ANN' },
-								],
+								options: unitTypeOptions,
 							},
 							{
 								displayName: 'Net Amount',
@@ -681,15 +568,7 @@ export class Mi2uCreate implements INodeType {
 								type: 'options',
 								default: '06',
 								required: true,
-								options: [
-									{ name: 'Sales Tax', value: '01' },
-									{ name: 'Service Tax', value: '02' },
-									{ name: 'Tourism Tax', value: '03' },
-									{ name: 'High-Value Goods Tax', value: '04' },
-									{ name: 'Sales Tax on Low Value Goods', value: '05' },
-									{ name: 'Not Applicable', value: '06' },
-									{ name: 'Tax Exemption', value: 'E' },
-								],
+								options: taxTypeOptions,
 							},
 							{
 								displayName: 'Total Excluding Tax',
@@ -725,16 +604,7 @@ export class Mi2uCreate implements INodeType {
 				name: 'paymentMode',
 				type: 'options',
 				default: '01',
-				options: [
-					{ name: 'Cash', value: '01' },
-					{ name: 'Cheque', value: '02' },
-					{ name: 'Bank Transfer', value: '03' },
-					{ name: 'Credit Card', value: '04' },
-					{ name: 'Debit Card', value: '05' },
-					{ name: 'E-Wallet / Digital Wallet', value: '06' },
-					{ name: 'Digital Bank', value: '07' },
-					{ name: 'Others', value: '08' },
-				],
+				options: paymentMethodOptions
 			},
 			{
 				displayName: 'Supplier Bank Account Number',
