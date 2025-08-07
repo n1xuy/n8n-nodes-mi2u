@@ -1029,15 +1029,25 @@ export class Mi2uCreate implements INodeType {
 				const responseData = await this.helpers.httpRequest(options);
 
 				// Create a custom, structured response
-				const customResponse = {
+				let customResponse: any = {
 					returnCode: responseData.returnCode,
 					returnMsg: responseData.returnMsg,
 					decodedContent: {},
 				};
 
-				if (responseData.returnCode === '00' && responseData.content) {
-					const decodedContent = Buffer.from(responseData.content, 'base64').toString('utf-8');
-					customResponse.decodedContent = JSON.parse(decodedContent);
+				if (responseData.content) {
+					try {
+						const decodedContent = Buffer.from(responseData.content, 'base64').toString('utf-8');
+						customResponse.decodedContent = JSON.parse(decodedContent);
+					} catch (e) {
+						// If decoding or parsing fails, include raw content as string
+						customResponse.decodedContent = { rawContent: responseData.content };
+					}
+				}
+
+				// If the API indicates an error, add the error message to the response
+				if (responseData.returnCode !== '00') {
+					customResponse.errorMessage = responseData.returnMsg || 'Unknown error';
 				}
 
 				returnData.push({ json: customResponse });
